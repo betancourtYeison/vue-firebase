@@ -1,36 +1,30 @@
 <template>
-  <div
-    id="entrance"
-    class="entrance"
-  >
-    <span>Entrada</span>
-    <Customer />
-    <div class="section">
-      <span>Seccion</span>
+    <div id="entrance">
+        <advertisements/>
+        <customer :email="email" @onChangeEmail="updateEmail"/>
+        <tickets/>
+        <email :emailDefault="email" @onChangeEmail="updateEmail"/>
+        <sign/>
     </div>
-  </div>
 </template>
 
 <script>
 import Customer from "@/components/Customer.vue";
+import Advertisements from "@/components/Advertisements.vue";
+import Tickets from "@/components/Tickets.vue";
+import Sign from "@/components/Sign.vue";
+import Email from "@/components/Email.vue";
 export default {
-  components: { Customer }
+    components: { Customer, Advertisements, Tickets, Sign, Email },
+    data() {
+        return {
+            email: ""
+        };
+    },
+    methods: {
+        updateEmail(email) {
+            this.email = email;
+        }
+    }
 };
 </script>
-
-<style>
-.entrance {
-  margin: 10px;
-  padding: 10px;
-  background-color: #553f75;
-  font-size: 2.6rem;
-}
-.section {
-  font-size: 2.4rem;
-  color: #202020;
-  background-color: #fae25c;
-  border-radius: 5px;
-  margin: 10px;
-  padding: 10px;
-}
-</style>
