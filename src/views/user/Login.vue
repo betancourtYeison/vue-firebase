@@ -42,7 +42,7 @@ import {
     minLength,
     maxLength
 } from "vuelidate/lib/validators";
-
+import { mapMutations, mapActions, mapGetters } from "vuex";
 export default {
     data() {
         return {
@@ -66,15 +66,41 @@ export default {
         }
     },
     methods: {
+        ...mapMutations(["showBusy", "showSuccess", "hideBusy"]),
+        ...mapMutations("session", ["updateUser"]),
+        ...mapActions(["signout"]),
         signin() {
             if (this.$v.formLogin.$invalid) {
                 this.$v.formLogin.$touch();
                 return;
             }
-            alert("consultando");
+            let user = {
+                username: "Newton",
+                name: "Isaac",
+                lastName: "Newton",
+                gender: "M",
+                description: "Descripción",
+                biography: "https://es.wikipedia.org/wiki/Isaac_Newton",
+                picture:
+                    "https://upload.wikimedia.org/wikipedia/commons/thumb/8/83/Sir_Isaac_Newton_%281643-1727%29.jpg/220px-Sir_Isaac_Newton_%281643-1727%29.jpg"
+            };
+
+            let busy = {
+                title: "Validando credenciales",
+                message: "Estamos validando tu información"
+            };
+
+            this.showBusy(busy);
+
+            setTimeout(() => {
+                this.updateUser(user);
+                this.showSuccess(this.greeting);
+                this.hideBusy();
+            }, 1000);
         }
     },
     computed: {
+        ...mapGetters("session", ["greeting"]),
         emailErrors() {
             let errors = [];
             if (!this.$v.formLogin.email.$dirty) {
