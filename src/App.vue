@@ -68,7 +68,7 @@ export default {
     data() {
         return {
             title: "Súper Ópera",
-            currentComponent: "home",
+            currentComponent: "register",
             menu: false
         };
     },
