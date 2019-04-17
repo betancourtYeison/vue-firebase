@@ -30,12 +30,26 @@
                         ></v-text-field>
                     </v-card-text>
                     <v-card-text>
-                        <v-layout justify-end>
-                            <v-btn
-                                @click="nextView(1)"
-                                :disabled="$v.formRegisterView1.$invalid"
-                                color="secondary"
-                            >Siguiente</v-btn>
+                        <v-layout>
+                            <v-flex xs6>
+                                <v-layout justify-start>
+                                    <v-btn
+                                        :to="{ name: 'login' }"
+                                        flat
+                                        color="secondary"
+                                        class="text-none"
+                                    >¿Ya tienes cuenta? Ingresa</v-btn>
+                                </v-layout>
+                            </v-flex>
+                            <v-flex xs6>
+                                <v-layout justify-end>
+                                    <v-btn
+                                        @click="nextView(1)"
+                                        :disabled="$v.formRegisterView1.$invalid"
+                                        color="secondary"
+                                    >Siguiente</v-btn>
+                                </v-layout>
+                            </v-flex>
                         </v-layout>
                     </v-card-text>
                 </v-card>

@@ -1,6 +1,7 @@
 import Vue from 'vue'
 import Vuex from 'vuex'
 import session from './session'
+import theather from './theather'
 
 Vue.use(Vuex)
 
@@ -53,6 +54,7 @@ export default new Vuex.Store({
     actions: {},
     getters: {},
     modules:{
-        session
+        session,
+        theather
     }
 })

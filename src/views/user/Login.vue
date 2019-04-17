@@ -22,12 +22,26 @@
                     ></v-text-field>
                 </v-card-text>
                 <v-card-text>
-                    <v-layout justify-end>
-                        <v-btn
-                            @click="signin"
-                            :disabled="$v.formLogin.$invalid"
-                            color="secondary"
-                        >Ingresar</v-btn>
+                    <v-layout>
+                        <v-flex xs6>
+                            <v-layout justify-start>
+                                <v-btn
+                                    :to="{ name: 'register' }"
+                                    flat
+                                    color="secondary"
+                                    class="text-none"
+                                >¿No tienes cuenta? Regístrate</v-btn>
+                            </v-layout>
+                        </v-flex>
+                        <v-flex xs6>
+                            <v-layout justify-end>
+                                <v-btn
+                                    @click="signin"
+                                    :disabled="$v.formLogin.$invalid"
+                                    color="secondary"
+                                >Ingresar</v-btn>
+                            </v-layout>
+                        </v-flex>
                     </v-layout>
                 </v-card-text>
             </v-card>
@@ -96,6 +110,7 @@ export default {
                 this.updateUser(user);
                 this.showSuccess(this.greeting);
                 this.hideBusy();
+                this.$router.push({ name: "home" });
             }, 1000);
         }
     },

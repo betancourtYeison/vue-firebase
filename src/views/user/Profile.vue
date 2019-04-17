@@ -1,6 +1,6 @@
 <template>
     <v-layout text-xs-center align-start justify-center>
-        <v-card class="elevation-6">
+        <v-card v-if="user" class="elevation-6">
             <v-card-text>
                 <div class="ma-2">{{user.name + ' ' + user.lastName}}</div>
                 <!-- <img class="ma-2 picture" :src="require('@/assets/profile.png')" alt="profile"> -->
@@ -14,10 +14,18 @@
 
 <script>
 import { mapState } from "vuex";
+// import store from "@/store";
 export default {
     computed: {
         ...mapState("session", ["user"])
     }
+    // beforeRouteEnter(to, from, next) {
+    //     if (store.state.session.user) {
+    //         next();
+    //     } else {
+    //         next({ name: "login" });
+    //     }
+    // }
 };
 </script>
 

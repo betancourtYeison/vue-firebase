@@ -2,7 +2,7 @@
     <v-app>
         <v-navigation-drawer v-model="menu" app temporary>
             <v-list>
-                <v-list-tile @click="selectComponent('home')">
+                <v-list-tile :to="{ path: '/' }">
                     <v-list-tile-action>
                         <v-icon>home</v-icon>
                     </v-list-tile-action>
@@ -10,7 +10,7 @@
                         <v-list-tile-title v-text="'Inicio'"></v-list-tile-title>
                     </v-list-tile-content>
                 </v-list-tile>
-                <v-list-tile v-if="user" @click="selectComponent('profile')">
+                <v-list-tile v-if="user" :to="{ name: 'profile' }">
                     <v-list-tile-action>
                         <v-icon>account_circle</v-icon>
                     </v-list-tile-action>
@@ -18,7 +18,7 @@
                         <v-list-tile-title v-text="'Perfil'"></v-list-tile-title>
                     </v-list-tile-content>
                 </v-list-tile>
-                <v-list-tile v-if="!user" @click="selectComponent('login')">
+                <v-list-tile v-if="!user" :to="{ name: 'login' }">
                     <v-list-tile-action>
                         <v-icon>arrow_forward</v-icon>
                     </v-list-tile-action>
@@ -38,16 +38,18 @@
         </v-navigation-drawer>
         <v-toolbar color="primary" dark app>
             <v-toolbar-side-icon @click="menu = !menu"></v-toolbar-side-icon>
-            <v-toolbar-title @click="selectComponent('home')" class="headline logo">
+            <v-toolbar-title @click="$router.push({ name: 'home' })" class="headline logo">
                 <span>{{title}}</span>
             </v-toolbar-title>
             <v-spacer></v-spacer>
-            <span v-if="user">{{user.name}}</span>
+            <router-link class="name" :to="{ name: 'profile' }">
+                <span v-if="user">{{user.name}}</span>
+            </router-link>
         </v-toolbar>
         <v-content>
             <v-container fluid fill-height>
                 <v-slide-y-transition mode="out-in">
-                    <component :is="currentComponent"></component>
+                    <router-view></router-view>
                 </v-slide-y-transition>
             </v-container>
         </v-content>
@@ -92,7 +94,6 @@ export default {
     data() {
         return {
             title: "Súper Ópera",
-            currentComponent: "home",
             menu: false
         };
     },
@@ -103,14 +104,10 @@ export default {
     methods: {
         ...mapMutations(["hideNotification"]),
         ...mapActions("session", ["signout"]),
-        selectComponent(component) {
-            this.currentComponent = component;
-            this.menu = false;
-        },
         handleSignout() {
-            this.currentComponent = "home";
             this.signout();
             this.menu = false;
+            this.$router.push({ name: "login" });
         }
     }
 };
@@ -121,5 +118,10 @@ export default {
 .logo {
     font-family: "Dancing Script", cursive !important;
     cursor: pointer;
+}
+.name {
+    color: white;
+    text-decoration: none;
+    font-size: 1.2rem;
 }
 </style>
