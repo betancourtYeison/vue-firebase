@@ -1,13 +1,19 @@
-import Vue from 'vue'
-import Router from 'vue-router'
-import store from "@/store";
-import Home from './views/Home.vue'
-import NotFound from './views/NotFound.vue'
-import Login from './views/user/Login.vue'
-import Register from './views/user/Register.vue'
-import Profile from './views/user/Profile.vue'
-import Show from './views/theather/Show.vue'
-import Production from './views/theather/Production.vue'
+import Vue from 'vue';
+import Router from 'vue-router';
+import { auth } from "@/firebase";
+
+
+import Home from './views/Home.vue';
+import NotFound from './views/NotFound.vue';
+
+import Login from './views/user/Login.vue';
+import VerificationEmail from './views/user/VerificationEmail.vue';
+import ActionsEmail from './views/user/ActionsEmail.vue';
+import Register from './views/user/Register.vue';
+import Profile from './views/user/Profile.vue';
+
+import Show from './views/theather/Show.vue';
+import Production from './views/theather/Production.vue';
 
 Vue.use(Router)
 
@@ -24,6 +30,16 @@ const router = new Router({
             path: '/session/login',
             name: 'login',
             component: Login
+        },
+        {
+            path: '/session/verification-email',
+            name: 'verification-email',
+            component: VerificationEmail
+        },
+        {
+            path: '/session/actions-email',
+            name: 'actions-email',
+            component: ActionsEmail
         },
         {
             path: '/session/register',
@@ -68,9 +84,14 @@ const router = new Router({
 })
 
 router.beforeEach((to, from, next) => {
+    let { currentUser } = auth
     if(to.matched.some(record => record.meta.authenticated)){
-        if (store.state.session.user) {
-            next();
+        if (currentUser) {
+            if(currentUser.providerData[0].providerId === 'password' && !currentUser.emailVerified){
+                next({ name: "verification-email" });
+            }else{
+                next();        
+            }
         } else {
             next({ name: "login" });
         }

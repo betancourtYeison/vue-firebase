@@ -26,7 +26,7 @@
                         <v-list-tile-title v-text="'Ingresar'"></v-list-tile-title>
                     </v-list-tile-content>
                 </v-list-tile>
-                <v-list-tile v-if="user" @click="handleSignout">
+                <v-list-tile v-if="user" @click="handlesignOut">
                     <v-list-tile-action>
                         <v-icon>arrow_back</v-icon>
                     </v-list-tile-action>
@@ -103,9 +103,9 @@ export default {
     },
     methods: {
         ...mapMutations(["hideNotification"]),
-        ...mapActions("session", ["signout"]),
-        handleSignout() {
-            this.signout();
+        ...mapActions("session", ["signOut"]),
+        handlesignOut() {
+            this.signOut();
             this.menu = false;
             this.$router.push({ name: "login" });
         }
