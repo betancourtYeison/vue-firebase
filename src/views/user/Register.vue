@@ -12,7 +12,7 @@
                     >Registrate con tu red social preferida</v-card-text>
                     <v-card-text>
                         <v-layout justify-center>
-                            <a @click="nextView(1, 'facebook')" class="mx-3">
+                            <a @click="nextView(1, 'facebook.com')" class="mx-3">
                                 <v-avatar tile :size="40">
                                     <img
                                         alt="Ingreso Facebook"
@@ -20,7 +20,7 @@
                                     >
                                 </v-avatar>
                             </a>
-                            <a @click="nextView(1, 'google')" class="mx-3">
+                            <a @click="nextView(1, 'google.com')" class="mx-3">
                                 <v-avatar tile :size="40">
                                     <img
                                         alt="Ingreso Google"
@@ -28,7 +28,7 @@
                                     >
                                 </v-avatar>
                             </a>
-                            <a @click="nextView(1, 'github')" class="mx-3">
+                            <a @click="nextView(1, 'github.com')" class="mx-3">
                                 <v-avatar tile :size="40">
                                     <img
                                         alt="Ingreso Github"
@@ -60,7 +60,7 @@
                         <v-text-field
                             v-model="formRegisterView1.password2"
                             :error-messages="password2Errors"
-                            @keyup.enter="nextView(1, 'email')"
+                            @keyup.enter="nextView(1, 'password')"
                             @blur="$v.formRegisterView1.password2.$touch()"
                             label="Repetir Contraseña"
                             type="password"
@@ -81,7 +81,7 @@
                             <v-flex xs6>
                                 <v-layout justify-end>
                                     <v-btn
-                                        @click="nextView(1, 'email')"
+                                        @click="nextView(1, 'password')"
                                         :disabled="$v.formRegisterView1.$invalid"
                                         color="secondary"
                                     >Siguiente</v-btn>
@@ -157,8 +157,42 @@
                             <v-flex xs6>
                                 <v-layout justify-end>
                                     <v-btn
-                                        @click="register"
+                                        @click="nextView(3)"
                                         :disabled="$v.formRegisterView3.$invalid"
+                                        color="secondary"
+                                    >Siguiente</v-btn>
+                                </v-layout>
+                            </v-flex>
+                        </v-layout>
+                    </v-card-text>
+                </v-card>
+
+                <v-card v-if="registerView === 4" :key="4" class="elevation-6">
+                    <v-toolbar color="primary" dark card>
+                        <v-toolbar-title>Ingresa un Nombre de Usuario</v-toolbar-title>
+                    </v-toolbar>
+                    <v-card-text>
+                        <v-text-field
+                            v-model="formRegisterView4.username"
+                            :error-messages="usernameErrors"
+                            @keyup.enter="register"
+                            @blur="$v.formRegisterView4.username.$touch()"
+                            autofocus
+                            label="Nombre de Usuario"
+                        ></v-text-field>
+                    </v-card-text>
+                    <v-card-text>
+                        <v-layout>
+                            <v-flex xs6>
+                                <v-layout justify-start>
+                                    <v-btn @click="backView">Volver</v-btn>
+                                </v-layout>
+                            </v-flex>
+                            <v-flex xs6>
+                                <v-layout justify-end>
+                                    <v-btn
+                                        @click="register"
+                                        :disabled="$v.formRegisterView4.$invalid"
                                         color="secondary"
                                     >Registrarse</v-btn>
                                 </v-layout>
@@ -177,15 +211,16 @@ import {
     email,
     minLength,
     maxLength,
-    sameAs
+    sameAs,
+    alphaNum
 } from "vuelidate/lib/validators";
 import { fullName } from "@/utils/validations";
-import { auth, firebase } from "@/firebase";
+import { auth, firebase, db } from "@/firebase";
 import { mapMutations, mapGetters } from "vuex";
 export default {
     data() {
         return {
-            method: "email",
+            method: "password",
             registerView: 1,
             maxDate: null,
             formRegisterView1: {
@@ -199,6 +234,9 @@ export default {
             },
             formRegisterView3: {
                 birthDate: null
+            },
+            formRegisterView4: {
+                username: ""
             }
         };
     },
@@ -236,6 +274,14 @@ export default {
             birthDate: {
                 required
             }
+        },
+        formRegisterView4: {
+            username: {
+                required,
+                minLength: minLength(5),
+                maxLength: maxLength(25),
+                alphaNum
+            }
         }
     },
     created() {
@@ -245,6 +291,11 @@ export default {
         )
             .toISOString()
             .substr(0, 10);
+        if (auth.currentUser && !this.$store.state.session.user) {
+            this.method = auth.currentUser.providerData[0].providerId;
+            this.registerView = 2;
+            this.$store.commit("showInfo", "Completa tus datos de registro.");
+        }
     },
     methods: {
         ...mapMutations([
@@ -263,7 +314,7 @@ export default {
                 case 1:
                     if (
                         this.$v.formRegisterView1.$invalid &&
-                        method === "email"
+                        method === "password"
                     ) {
                         this.$v.formRegisterView1.$touch();
                         return;
@@ -279,7 +330,13 @@ export default {
                     }
                     this.registerView++;
                     break;
-
+                case 3:
+                    if (this.$v.formRegisterView3.$invalid) {
+                        this.$v.formRegisterView3.$touch();
+                        return;
+                    }
+                    this.registerView++;
+                    break;
                 default:
                     break;
             }
@@ -290,24 +347,36 @@ export default {
             }
         },
         async register() {
-            if (this.$v.formRegisterView3.$invalid) {
+            if (this.$v.formRegisterView4.$invalid) {
+                return;
+            }
+            let usernameExists = await db
+                .collection("usernames")
+                .doc(this.formRegisterView4.username.toLowerCase())
+                .get();
+            if (usernameExists.exists) {
+                this.showWarning(
+                    `El nombre de usuario ${
+                        this.formRegisterView4.username
+                    }, ya está tomado, selecciona uno diferente`
+                );
                 return;
             }
             switch (this.method) {
-                case "email":
+                case "password":
                     this.registerWithEmailAndPassword();
                     break;
-                case "facebook":
+                case "facebook.com":
                     this.registerWithProvider(
                         new firebase.auth.FacebookAuthProvider()
                     );
                     break;
-                case "google":
+                case "google.com":
                     this.registerWithProvider(
                         new firebase.auth.GoogleAuthProvider()
                     );
                     break;
-                case "github":
+                case "github.com":
                     this.registerWithProvider(
                         new firebase.auth.GithubAuthProvider()
                     );
@@ -317,6 +386,39 @@ export default {
                     break;
             }
         },
+        async saveUser(uid) {
+            let user = {
+                uid,
+                username: this.formRegisterView4.username,
+                name: this.formRegisterView2.name,
+                lastName: this.formRegisterView2.lastName,
+                birthDate: new Date(this.formRegisterView3.birthDate),
+                gender: "M",
+                picture:
+                    "https://upload.wikimedia.org/wikipedia/commons/thumb/8/83/Sir_Isaac_Newton_%281643-1727%29.jpg/220px-Sir_Isaac_Newton_%281643-1727%29.jpg"
+            };
+
+            let username = {
+                username: this.formRegisterView4.username,
+                uid
+            };
+
+            let batch = db.batch();
+
+            batch.set(db.collection("users").doc(user.uid), user);
+            batch.set(
+                db
+                    .collection("usernames")
+                    .doc(this.formRegisterView4.username.toLowerCase()),
+                username
+            );
+
+            await batch.commit();
+
+            this.updateUser(user);
+
+            this.showSuccess(this.greeting);
+        },
         async registerWithEmailAndPassword() {
             try {
                 this.showBusy({
@@ -324,14 +426,22 @@ export default {
                     message: "Estamos registrando tu información..."
                 });
 
-                await auth.createUserWithEmailAndPassword(
-                    this.formRegisterView1.email,
-                    this.formRegisterView1.password1
-                );
+                let uid = null;
+
+                if (auth.currentUser) {
+                    uid = auth.currentUser.uid;
+                } else {
+                    let credentials = await auth.createUserWithEmailAndPassword(
+                        this.formRegisterView1.email,
+                        this.formRegisterView1.password1
+                    );
+                    uid = credentials.user;
+                }
+
+                await this.saveUser(uid);
 
                 await auth.currentUser.sendEmailVerification();
 
-                this.showSuccess(this.greeting);
                 this.$router.push({ name: "verification-email" });
             } catch (error) {
                 switch (error.code) {
@@ -357,8 +467,14 @@ export default {
 
             try {
                 auth.languageCode = "es_CO";
-                await auth.signInWithPopup(provider);
-                this.showSuccess(this.greeting);
+                let uid = null;
+                if (auth.currentUser) {
+                    uid = auth.currentUser.uid;
+                } else {
+                    let credentials = await auth.signInWithPopup(provider);
+                    uid = credentials.user;
+                }
+                await this.saveUser(uid);
                 this.$router.push({ name: "home" });
             } catch (error) {
                 this.showError(
@@ -446,6 +562,25 @@ export default {
             }
             if (!this.$v.formRegisterView2.lastName.fullName) {
                 errors.push("Ingresa solo letras");
+            }
+            return errors;
+        },
+        usernameErrors() {
+            let errors = [];
+            if (!this.$v.formRegisterView4.username.$dirty) {
+                return errors;
+            }
+            if (!this.$v.formRegisterView4.username.required) {
+                errors.push("Ingresa tus nombre de usuario.");
+            }
+            if (!this.$v.formRegisterView4.username.minLength) {
+                errors.push("Ingresa al menos 5 caracteres.");
+            }
+            if (!this.$v.formRegisterView4.username.maxLength) {
+                errors.push("Ingresa máximo 25 caracteres");
+            }
+            if (!this.$v.formRegisterView4.username.alphaNum) {
+                errors.push("Ingresa solo letras y números sin espacios");
             }
             return errors;
         }

@@ -131,7 +131,7 @@ import {
     maxLength
 } from "vuelidate/lib/validators";
 import { auth, firebase } from "@/firebase";
-import { mapMutations, mapActions, mapGetters } from "vuex";
+import { mapMutations } from "vuex";
 export default {
     data() {
         return {
@@ -168,8 +168,6 @@ export default {
             "showWarning",
             "hideBusy"
         ]),
-        ...mapMutations("session", ["updateUser"]),
-        ...mapActions(["signOut"]),
         async signIn(method) {
             switch (method) {
                 case "email":
@@ -210,9 +208,6 @@ export default {
                     this.formLogin.email,
                     this.formLogin.password
                 );
-
-                this.showSuccess(this.greeting);
-                this.$router.push({ name: "home" });
             } catch (error) {
                 switch (error.code) {
                     case "auth/user-not-found":
@@ -239,8 +234,6 @@ export default {
             try {
                 auth.languageCode = "es_CO";
                 await auth.signInWithPopup(provider);
-                this.showSuccess(this.greeting);
-                this.$router.push({ name: "home" });
             } catch (error) {
                 this.showError(
                     "Ocurrió un error validando tu información. Inténtalo más tarde."
@@ -268,7 +261,6 @@ export default {
         }
     },
     computed: {
-        ...mapGetters("session", ["greeting"]),
         emailErrors() {
             let errors = [];
             if (!this.$v.formLogin.email.$dirty) {

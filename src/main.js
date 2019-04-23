@@ -14,13 +14,25 @@ Vue.use(Vuelidate)
 auth.onAuthStateChanged(user => {
     if(user){
         store.dispatch('session/signIn', user.uid)
+        .then(() => {
+            initVue();
+        })
     }else{
         store.dispatch('session/signOut')
+        .then(() => {
+            initVue();
+        })
     }
 })
 
-new Vue({
-    store,
-    router,
-    render: h => h(App)
-}).$mount('#app')
+let vue = null
+
+function initVue(){
+    if(!vue){
+        vue = new Vue({
+            store,
+            router,
+            render: h => h(App)
+        }).$mount('#app')
+    }
+}

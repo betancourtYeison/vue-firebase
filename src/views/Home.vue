@@ -6,10 +6,10 @@
         <v-layout wrap>
             <v-flex xs12 sm6 md4 lg3 v-for="show in shows" :key="show.sid">
                 <v-card class="elevation-5 ma-3" :to="{ name: 'show', params: {sid: show.sid}}">
-                    <v-img :src="show.picture">
+                    <v-img :src="require(`@/assets/shows/${show.picture}`)">
                         <v-layout align-end justify-center fill-height>
                             <v-spacer></v-spacer>
-                            <v-card-text class="home-show-title">{{show.sid}} {{show.title}}</v-card-text>
+                            <v-card-text class="home-show-title">{{show.title}}</v-card-text>
                         </v-layout>
                     </v-img>
                 </v-card>
@@ -19,10 +19,39 @@
 </template>
 
 <script>
-import { mapState } from "vuex";
+import { mapMutations } from "vuex";
+import { db } from "@/firebase";
 export default {
-    computed: {
-        ...mapState("theather", ["shows"])
+    data() {
+        return {
+            shows: []
+        };
+    },
+    created() {
+        this.loadShows();
+    },
+    methods: {
+        ...mapMutations(["showError", "showWarning"]),
+        async loadShows() {
+            try {
+                let docs = await db
+                    .collection("shows")
+                    .where("active", "==", true)
+                    // .orderBy("sid", "desc")
+                    // .limit(2)
+                    .get();
+                docs.forEach(doc => {
+                    this.shows.push(doc.data());
+                });
+                if (this.shows.length === 0) {
+                    this.showWarning("No hay obras disponibles en el momento.");
+                }
+            } catch (error) {
+                this.showError(
+                    "Ocurrió un error consultando las obras. Inténtalo más tarde."
+                );
+            }
+        }
     }
 };
 </script>

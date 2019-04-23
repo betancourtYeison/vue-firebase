@@ -1,4 +1,5 @@
-import { auth } from '@/firebase'
+import { auth, db } from '@/firebase'
+import router from '@/router'
 
 export default {
     namespaced: true,
@@ -9,25 +10,47 @@ export default {
         updateUser(state, payload){
             state.user = payload;
         },
+        updateData(state, payload){
+            if(!state.user){
+                return
+            }else{
+                state.user = {...state.user, ...payload}
+            }
+        },
     },
     actions: {
-        signIn({ commit }, uid){
-            let user = {
-                uid,
-                username: "Newton",
-                name: "Isaac",
-                lastName: "Newton",
-                gender: "M",
-                description: "Descripción",
-                biography: "https://es.wikipedia.org/wiki/Isaac_Newton",
-                picture:
-                    "https://upload.wikimedia.org/wikipedia/commons/thumb/8/83/Sir_Isaac_Newton_%281643-1727%29.jpg/220px-Sir_Isaac_Newton_%281643-1727%29.jpg"
-            };
-            commit("updateUser", user)
+        async signIn({ commit, getters }, uid){
+            try {
+               let doc = await db.collection('users')
+                                .doc(uid)
+                                .get();
+                if(doc.exists){
+                    let user = doc.data();
+                    commit('updateUser', user);
+                    switch (router.currentRoute.name) {
+                        case 'login':
+                            commit('showSuccess', getters.greeting, { root: true });
+                            router.push({ name: "home" });
+                            break;
+                        case 'actions-email':
+                            commit('showSuccess', `${
+                                getters.greeting
+                            }, tu contraseña ha sido cambiada existosamente.`, { root: true });
+                            router.push({ name: "home" });
+                            break;
+                        default:
+                            break;
+                    }
+                }else{
+                    router.push({ name: 'register' });
+                }
+            } catch (error) {
+                commit('showError', 'Ocurrió un error consultando tu información', { root: true });
+            }
         },
         signOut({ commit }){
-            auth.signOut()
-            commit("updateUser", null)
+            auth.signOut();
+            commit("updateUser", null);
         }
     },
     getters: {

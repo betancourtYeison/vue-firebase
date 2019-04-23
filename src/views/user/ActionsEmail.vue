@@ -143,13 +143,6 @@ export default {
                     this.email,
                     this.formRegisterView1.password1
                 );
-
-                this.showSuccess(
-                    `${
-                        this.greeting
-                    }, tu contraseña ha sido cambiada existosamente`
-                );
-                this.$router.push({ name: "home" });
             } catch (error) {
                 this.showError("No fue posible cambiar la contraseña.");
             } finally {

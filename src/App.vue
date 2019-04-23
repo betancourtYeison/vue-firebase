@@ -10,7 +10,10 @@
                         <v-list-tile-title v-text="'Inicio'"></v-list-tile-title>
                     </v-list-tile-content>
                 </v-list-tile>
-                <v-list-tile v-if="user" :to="{ name: 'profile' }">
+                <v-list-tile
+                    v-if="user"
+                    :to="{ name: 'profile', params: {username: user.username} }"
+                >
                     <v-list-tile-action>
                         <v-icon>account_circle</v-icon>
                     </v-list-tile-action>
@@ -42,8 +45,12 @@
                 <span>{{title}}</span>
             </v-toolbar-title>
             <v-spacer></v-spacer>
-            <router-link class="name" :to="{ name: 'profile' }">
-                <span v-if="user">{{user.name}}</span>
+            <router-link
+                v-if="user"
+                class="name"
+                :to="{ name: 'profile', params: {username: user.username} }"
+            >
+                <span>{{user.name}}</span>
             </router-link>
         </v-toolbar>
         <v-content>

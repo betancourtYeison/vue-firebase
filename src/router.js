@@ -12,6 +12,7 @@ import ActionsEmail from './views/user/ActionsEmail.vue';
 import Register from './views/user/Register.vue';
 import Profile from './views/user/Profile.vue';
 
+import TheatherData from './views/theather/TheatherData.vue';
 import Show from './views/theather/Show.vue';
 import Production from './views/theather/Production.vue';
 
@@ -47,7 +48,7 @@ const router = new Router({
             component: Register
         },
         {
-            path: '/user/profile',
+            path: '/user/:username',
             name: 'profile',
             component: Profile,
             meta: {
@@ -62,6 +63,11 @@ const router = new Router({
             // }
         },
         {
+            path: '/admin/theather-data',
+            name: 'theather-data',
+            component: TheatherData
+        },
+        {
             path: '/shows/:sid',
             name: 'show',
             component: Show
@@ -69,7 +75,10 @@ const router = new Router({
         {
             path: '/:sid/:tid/:date',
             name: 'production',
-            component: Production
+            component: Production,
+            meta: {
+                authenticated: true
+            }
         },
         {
             path: '/404',
