@@ -11,6 +11,7 @@ import VerificationEmail from './views/user/VerificationEmail.vue';
 import ActionsEmail from './views/user/ActionsEmail.vue';
 import Register from './views/user/Register.vue';
 import Profile from './views/user/Profile.vue';
+import ProfilePicture from './views/user/ProfilePicture.vue';
 
 import TheatherData from './views/theather/TheatherData.vue';
 import Show from './views/theather/Show.vue';
@@ -61,6 +62,14 @@ const router = new Router({
             //         next({ name: "login" });
             //     }
             // }
+        },
+        {
+            path: '/session/profile-picture',
+            name: 'profile-picture',
+            component: ProfilePicture,
+            meta: {
+                authenticated: true
+            }
         },
         {
             path: '/admin/theather-data',

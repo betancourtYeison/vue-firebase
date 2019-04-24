@@ -25,7 +25,20 @@
                     <div class="ma-2">{{user.name + ' ' + user.lastName}}</div>
                 </v-layout>
                 <!-- <img class="ma-2 picture" :src="require('@/assets/profile.png')" alt="profile"> -->
-                <v-img class="ma-2 picture" :src="user.picture" alt="profile"></v-img>
+                <v-img class="ma-2 picture" :src="profilePicture" alt="Foto de Perfil">
+                    <v-layout fill-height align-end justify-end>
+                        <v-btn
+                            v-if="editing"
+                            :to="{name: 'profile-picture'}"
+                            color="white"
+                            outline
+                            icon
+                            large
+                        >
+                            <v-icon>edit</v-icon>
+                        </v-btn>
+                    </v-layout>
+                </v-img>
                 <v-layout justify-center>
                     <v-btn
                         @click="editDescription"
@@ -175,7 +188,7 @@
 <script>
 import { required, minLength, maxLength, url } from "vuelidate/lib/validators";
 import { fullName } from "@/utils/validations";
-import { mapMutations } from "vuex";
+import { mapMutations, mapGetters } from "vuex";
 // import store from "@/store";
 import { auth, db } from "@/firebase";
 export default {
@@ -225,6 +238,7 @@ export default {
         }
     },
     computed: {
+        ...mapGetters("session", ["profilePicture"]),
         ownProfile() {
             return this.user && this.user.uid === auth.currentUser.uid;
         },

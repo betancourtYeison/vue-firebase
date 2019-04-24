@@ -1532,7 +1532,8 @@ export default {
             const showHamilton = {
                 sid: "hamilton",
                 title: "Hamilton",
-                picture: "hamilton.png",
+                picture:
+                    "https://firebasestorage.googleapis.com/v0/b/vue-firebase-2c9bf.appspot.com/o/shows%2Fhamilton%2Fhamilton.png?alt=media&token=cac77fa4-f287-4dce-85e8-43de04cb30ec",
                 description:
                     'Hamilton: An American Musical es un musical sobre la vida de Alexander Hamilton, uno de los padres fundadores de los Estados Unidos; con letras, música y guion de Lin-Manuel Miranda.1​ El espectáculo, inspirado en la biografía de 2004 "Alexander Hamilton" del historiador Ron Chernow, ha logrado un gran éxito en crítica y taquilla.\n\nEl musical debutó en febrero del 2015 en el Teatro Público de Nueva York, hasta agosto del mismo año; cuando fue trasladado al teatro Richard Rodgers del circuito de Broadway, donde logró gran éxito en críticas y taquilla.\n\nEntre sus principales reconocimientos están haber ganado once premios Tony, un Grammy a mejor musical, un Pulitzer a mejor drama y siete premios Drama Desk.',
                 categories: [
@@ -1548,7 +1549,8 @@ export default {
             const showElReyLeon = {
                 sid: "el-rey-leon",
                 title: "El Rey León",
-                picture: "el-rey-leon.png",
+                picture:
+                    "https://firebasestorage.googleapis.com/v0/b/vue-firebase-2c9bf.appspot.com/o/shows%2Fel-rey-leon%2Fel-rey-leon.png?alt=media&token=dbeb5854-a967-4b68-b1bc-aafe6cbc5e54",
                 description:
                     "El rey león es un musical basado en la película homónima de Disney de 1994, con libreto de Roger Allers e Irene Mecchi, canciones de Elton John y Tim Rice, y música adicional de Lebo M, Mark Mancina, Jay Rifkin, Julie Taymor y Hans Zimmer. Dirigido por Julie Taymor, el espectáculo está producido por Disney Theatrical y se caracteriza por el empleo de máscaras de animales y marionetas de gran tamaño para representar a los diferentes personajes.",
                 categories: [
@@ -1564,7 +1566,8 @@ export default {
             const showFrozen = {
                 sid: "frozen",
                 title: "Frozen",
-                picture: "frozen.png",
+                picture:
+                    "https://firebasestorage.googleapis.com/v0/b/vue-firebase-2c9bf.appspot.com/o/shows%2Ffrozen%2Ffrozen.png?alt=media&token=d9445de9-45b0-469f-b5f8-13bdf75e4812",
                 description:
                     "Frozen is a musical with music and lyrics by Kristen Anderson-Lopez and Robert Lopez and book by Jennifer Lee based on the 2013 film of the same name. Produced by Disney Theatrical Productions, it had a tryout at the Buell Theatre in Denver, Colorado in August 2017 and premiered on Broadway in March 2018 at the St. James Theatre.",
                 categories: [
@@ -1580,7 +1583,8 @@ export default {
             const showAnastasia = {
                 sid: "anastasia",
                 title: "Anastasia",
-                picture: "anastasia.png",
+                picture:
+                    "https://firebasestorage.googleapis.com/v0/b/vue-firebase-2c9bf.appspot.com/o/shows%2Fanastasia%2Fanastasia.png?alt=media&token=d2054125-ba13-4d7c-b7be-69893609499a",
                 description:
                     "Anastasia es un musical basado en la película de animación homónima de 1997, con libreto de Terrence McNally, música de Stephen Flaherty y letras de Lynn Ahrens. Su trama central gira en torno a la leyenda de la gran duquesa Anastasia Nikoláyevna de Rusia, quien supuestamente escapó de la ejecución de su familia a manos del ejército bolchevique.",
                 categories: [

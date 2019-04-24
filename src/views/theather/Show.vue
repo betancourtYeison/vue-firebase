@@ -6,7 +6,7 @@
             <v-layout wrap align-center>
                 <v-flex xs12 md6>
                     <v-card class="ma-3">
-                        <v-img :src="require(`@/assets/shows/${show.picture}`)"></v-img>
+                        <v-img :src="show.picture"></v-img>
                         <v-card-text
                             class="subheading font-italic text-xs-justify"
                         >{{show.description}}</v-card-text>

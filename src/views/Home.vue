@@ -6,7 +6,7 @@
         <v-layout wrap>
             <v-flex xs12 sm6 md4 lg3 v-for="show in shows" :key="show.sid">
                 <v-card class="elevation-5 ma-3" :to="{ name: 'show', params: {sid: show.sid}}">
-                    <v-img :src="require(`@/assets/shows/${show.picture}`)">
+                    <v-img :src="show.picture">
                         <v-layout align-end justify-center fill-height>
                             <v-spacer></v-spacer>
                             <v-card-text class="home-show-title">{{show.title}}</v-card-text>

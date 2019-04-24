@@ -61,6 +61,12 @@ export default {
 
             let vowel = state.user.gender && state.user.gender === "F" ? "a" : "o";
             return `¡Bienvenid${vowel}! ${state.user.name}`;
+        },
+        profilePicture(state){
+            if(!state.user || !state.user.picture){
+                return require('@/assets/picture.png')
+            }
+            return state.user.picture;
         }
     }
 }
