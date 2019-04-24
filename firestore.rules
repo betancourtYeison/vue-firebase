@@ -1,7 +1,25 @@
 service cloud.firestore {
   match /databases/{database}/documents {
-    match /{document=**} {
+    match /shows/{sid=**} {
       allow read, write;
+    }
+    match /theathers/{tid=**} {
+      allow read, write;
+    }
+    match /usernames/{uid=**} {
+      allow read, write;
+    }
+    match /users/{uid} {
+      allow read: if request.auth.uid != null;
+      allow create: if request.auth.uid != null;
+      allow update: if request.auth.uid != null && request.auth.uid == resource.data.uid;
+      allow delete: if false;
+      match /profile-picture/{pid} {
+      	allow read, write: if request.auth.uid != null && request.auth.uid == uid;
+    	}
+      match /reservations/{rid}{
+        allow read, write: if request.auth.uid != null && request.auth.uid == uid;
+      }
     }
   }
 }
