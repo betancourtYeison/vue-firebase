@@ -50,7 +50,12 @@
                 class="name"
                 :to="{ name: 'profile', params: {username: user.username} }"
             >
-                <span>{{user.name}}</span>
+                <v-layout align-center>
+                    <v-avatar size="32" class="mr-2">
+                        <v-img :src="user.picture32" alt="Foto Perfil"></v-img>
+                    </v-avatar>
+                    <span>{{user.name}}</span>
+                </v-layout>
             </router-link>
         </v-toolbar>
         <v-content>

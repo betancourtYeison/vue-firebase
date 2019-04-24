@@ -25,7 +25,12 @@
                     <div class="ma-2">{{user.name + ' ' + user.lastName}}</div>
                 </v-layout>
                 <!-- <img class="ma-2 picture" :src="require('@/assets/profile.png')" alt="profile"> -->
-                <v-img class="ma-2 picture" :src="profilePicture" alt="Foto de Perfil">
+                <v-img
+                    v-if="profilePicture"
+                    class="ma-2 picture"
+                    :src="profilePicture"
+                    alt="Foto de Perfil"
+                >
                     <v-layout fill-height align-end justify-end>
                         <v-btn
                             v-if="editing"
@@ -190,11 +195,12 @@ import { required, minLength, maxLength, url } from "vuelidate/lib/validators";
 import { fullName } from "@/utils/validations";
 import { mapMutations, mapGetters } from "vuex";
 // import store from "@/store";
-import { auth, db } from "@/firebase";
+import { auth, db, storage } from "@/firebase";
 export default {
     data() {
         return {
             user: null,
+            profilePicture: null,
             editing: false,
             editingFullName: false,
             editingDescription: false,
@@ -238,7 +244,6 @@ export default {
         }
     },
     computed: {
-        ...mapGetters("session", ["profilePicture"]),
         ownProfile() {
             return this.user && this.user.uid === auth.currentUser.uid;
         },
@@ -331,6 +336,21 @@ export default {
                         .get();
                     if (userDoc.exists) {
                         this.user = userDoc.data();
+                        if (this.user.picture) {
+                            let uid = this.user.uid;
+                            let pid = this.user.picture;
+                            storage
+                                .ref()
+                                .child(
+                                    `users/${uid}/profile-picture/${pid}-256x256.jpg`
+                                )
+                                .getDownloadURL()
+                                .then(url => {
+                                    this.profilePicture = url;
+                                });
+                        } else {
+                            this.profilePicture = require("@/assets/picture.png");
+                        }
                     } else {
                         this.$router.push({ name: "404" });
                     }

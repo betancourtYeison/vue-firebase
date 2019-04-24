@@ -11,7 +11,7 @@
                     </v-toolbar>
                     <v-card-text>
                         <v-layout v-if="view === 1" justify-center>
-                            <v-img :src="profilePicture" alt="Foto de Perfil"></v-img>
+                            <v-img :src="user.picture256" alt="Foto de Perfil"></v-img>
                         </v-layout>
                         <v-layout v-if="view === 2" justify-center>
                             <div ref="preview" class="preview"></div>
@@ -38,9 +38,6 @@
         </v-flex>
         <v-flex xs12 sm10 md8 lg6 xl4 mt-3>
             <v-card>
-                <!-- <v-toolbar color="primary" dark card>
-                    <v-toolbar-title>Cargar Foto de Perfil</v-toolbar-title>
-                </v-toolbar>-->
                 <v-tabs color="primary" dark icons-and-text>
                     <v-tab>
                         Cargar Foto
@@ -74,14 +71,14 @@
                                             <v-flex xs6>
                                                 <v-layout justify-start>
                                                     <v-icon
-                                                        v-if="picture.url === user.picture"
+                                                        v-if="picture.pid === user.picture"
                                                         color="green"
                                                         medium
                                                     >check_circle</v-icon>
                                                     <v-icon
                                                         v-else
                                                         color="gray"
-                                                        @click="selectPicture(picture.url)"
+                                                        @click="selectPicture(picture.pid)"
                                                         medium
                                                     >check_circle_outline</v-icon>
                                                 </v-layout>
@@ -89,7 +86,7 @@
                                             <v-flex xs6>
                                                 <v-layout justify-end>
                                                     <v-icon
-                                                        v-if="picture.url !== user.picture"
+                                                        v-if="picture.pid !== user.picture"
                                                         @click="confirmDeletePicture(picture)"
                                                         medium
                                                     >delete</v-icon>
@@ -121,14 +118,14 @@
 </template>
 
 <script>
-import { mapState, mapGetters, mapMutations } from "vuex";
+import { mapState, mapGetters, mapMutations, mapActions } from "vuex";
 import vueFilePond from "vue-filepond";
 import FilePondPluginFileValidateType from "filepond-plugin-file-validate-type";
 import "filepond/dist/filepond.min.css";
 import Cropper from "cropperjs/dist/cropper";
 import "cropperjs/dist/cropper.css";
 import uuidv4 from "uuid/v4";
-import { db, storage } from "@/firebase";
+import { db, storage, auth, functions } from "@/firebase";
 
 const FilePond = vueFilePond(FilePondPluginFileValidateType);
 
@@ -146,15 +143,14 @@ export default {
         FilePond
     },
     computed: {
-        ...mapState("session", ["user"]),
-        ...mapGetters("session", ["profilePicture"])
+        ...mapState("session", ["user"])
     },
     created() {
         this.getPicturesList();
     },
     methods: {
         ...mapMutations(["showBusy", "showError", "showSuccess", "hideBusy"]),
-        ...mapMutations("session", ["updateData"]),
+        ...mapActions("session", ["updatePicture"]),
         async getPicturesList() {
             this.showBusy({
                 title: "Consultando Galería",
@@ -168,7 +164,22 @@ export default {
                     .orderBy("date", "desc")
                     .get();
                 data.docs.forEach(doc => {
-                    this.picturesList.push(doc.data());
+                    let picture = doc.data();
+                    picture.url = "";
+                    this.picturesList.push(picture);
+                });
+                let ref = storage.ref();
+                let uid = this.user.uid;
+                this.picturesList.forEach(picture => {
+                    ref.child(
+                        `users/${uid}/profile-picture/${
+                            picture.pid
+                        }-${256}x${256}.jpg`
+                    )
+                        .getDownloadURL()
+                        .then(url => {
+                            picture.url = url;
+                        });
                 });
             } catch (error) {
                 this.showError(
@@ -222,39 +233,49 @@ export default {
             let pictureId = uuidv4();
             try {
                 let ref = storage.ref();
-                let data = await ref
+                await ref
                     .child(
                         `users/${
                             this.user.uid
                         }/profile-picture/${pictureId}.jpg`
                     )
                     .putString(image, "data_url");
-                let url = await data.ref.getDownloadURL();
-                let profilePicture = {
-                    pid: pictureId,
-                    date: new Date(),
-                    url,
-                    uid: this.user.uid
-                };
-                await db
-                    .collection("users")
-                    .doc(this.user.uid)
-                    .collection("profile-picture")
-                    .doc(pictureId)
-                    .set(profilePicture);
-                let picture = {
-                    picture: url
-                };
-                await db
-                    .collection("users")
-                    .doc(this.user.uid)
-                    .update(picture);
-                this.updateData(picture);
-                this.showSuccess("Se actualizó la información correctamente.");
-                this.$router.push({
-                    name: "profile",
-                    params: { username: this.user.username }
-                });
+
+                let generateThumbnails = functions.httpsCallable(
+                    "generateThumbnails"
+                );
+                let idToken = await auth.currentUser.getIdToken(true);
+                if (await generateThumbnails({ idToken, pictureId })) {
+                    let profilePicture = {
+                        pid: pictureId,
+                        date: new Date(),
+                        uid: this.user.uid
+                    };
+                    await db
+                        .collection("users")
+                        .doc(this.user.uid)
+                        .collection("profile-picture")
+                        .doc(pictureId)
+                        .set(profilePicture);
+                    await db
+                        .collection("users")
+                        .doc(this.user.uid)
+                        .update({
+                            picture: pictureId
+                        });
+                    this.updatePicture(pictureId);
+                    this.showSuccess(
+                        "Se actualizó la información correctamente."
+                    );
+                    this.$router.push({
+                        name: "profile",
+                        params: { username: this.user.username }
+                    });
+                } else {
+                    this.showError(
+                        "Ocurrió un error almacenando las fotos miniaturas de perfil. Inténtalo más tarde."
+                    );
+                }
             } catch (error) {
                 this.showError(
                     "Ocurrió un error almacenando tu foto de perfil. Inténtalo más tarde."
@@ -263,20 +284,19 @@ export default {
                 this.hideBusy();
             }
         },
-        async selectPicture(url) {
+        async selectPicture(pid) {
             this.showBusy({
                 title: "Actualizando Foto de Perfil",
                 message: "Estableciendo Foto de Perfil..."
             });
             try {
-                let picture = {
-                    picture: url
-                };
                 await db
                     .collection("users")
                     .doc(this.user.uid)
-                    .update(picture);
-                this.updateData(picture);
+                    .update({
+                        picture: pid
+                    });
+                this.updatePicture(pid);
                 this.showSuccess("Se actualizó la información correctamente.");
             } catch (error) {
                 this.showError(
@@ -302,20 +322,27 @@ export default {
                     .collection("profile-picture")
                     .doc(this.pictureDelete.pid)
                     .delete();
-                await storage
-                    .ref()
-                    .child(
-                        `users/${this.user.uid}/profile-picture/${
-                            this.pictureDelete.pid
-                        }.jpg`
-                    )
-                    .delete();
+
+                let dimensions = [512, 256, 128, 64, 32];
+                let promises = dimensions.map(async dimension => {
+                    let width = dimension;
+                    let height = dimension;
+                    await storage
+                        .ref()
+                        .child(
+                            `users/${this.user.uid}/profile-picture/${
+                                this.pictureDelete.pid
+                            }-${width}x${height}.jpg`
+                        )
+                        .delete();
+                });
+                await Promise.all(promises);
+
                 let index = this.picturesList.indexOf(this.pictureDelete);
                 this.picturesList.splice(index, 1);
                 this.showSuccess("Se elimino la información correctamente.");
                 this.confirmDelete = false;
             } catch (error) {
-                console.log(error);
                 this.showError(
                     "Ocurrió un error eliminando la foto de perfil. Inténtalo más tarde."
                 );

@@ -1,5 +1,7 @@
-import { auth, db } from '@/firebase'
-import router from '@/router'
+import { auth, db, storage } from '@/firebase';
+import router from '@/router';
+
+const dimensions = [512, 256, 128, 64, 32];
 
 export default {
     namespaced: true,
@@ -24,8 +26,32 @@ export default {
                let doc = await db.collection('users')
                                 .doc(uid)
                                 .get();
+                
                 if(doc.exists){
                     let user = doc.data();
+
+                    let picture = require("@/assets/picture.png");
+                    user.picture32 = picture;
+                    user.picture64 = picture;
+                    user.picture128 = picture;
+                    user.picture256 = picture;
+                    user.picture512 = picture;
+                    
+                    if (user.picture) {
+                        let ref = storage.ref();
+                        let uid = user.uid;
+                        let pid = user.picture;
+                        let baseURL = `users/${uid}/profile-picture/${pid}-`;
+                        dimensions.forEach(dimension => {
+                            ref.child(`${baseURL}${dimension}x${dimension}.jpg`)
+                            .getDownloadURL()
+                            .then(url => {
+                                commit("updateData", {
+                                    ["picture"+dimension]: url
+                                });
+                            });
+                        });
+                    }
                     commit('updateUser', user);
                     switch (router.currentRoute.name) {
                         case 'login':
@@ -51,6 +77,23 @@ export default {
         signOut({ commit }){
             auth.signOut();
             commit("updateUser", null);
+        },
+        updatePicture({ state, commit }, pictureId){
+            commit("updateData", {
+                picture: pictureId
+            });
+            let ref = storage.ref();
+            let uid = state.user.uid;
+            let baseURL = `users/${uid}/profile-picture/${pictureId}-`;
+            dimensions.forEach(dimension => {
+                ref.child(`${baseURL}${dimension}x${dimension}.jpg`)
+                .getDownloadURL()
+                .then(url => {
+                    commit("updateData", {
+                        ["picture"+dimension]: url
+                    });
+                });
+            });
         }
     },
     getters: {
@@ -62,11 +105,5 @@ export default {
             let vowel = state.user.gender && state.user.gender === "F" ? "a" : "o";
             return `¡Bienvenid${vowel}! ${state.user.name}`;
         },
-        profilePicture(state){
-            if(!state.user || !state.user.picture){
-                return require('@/assets/picture.png')
-            }
-            return state.user.picture;
-        }
     }
 }

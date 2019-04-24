@@ -303,6 +303,7 @@ export default {
                 return;
             }
             seat.changingState = true;
+            let batch = db.batch();
             if (seat.state === "available") {
                 let reservation = {
                     rid: seat.sid,
@@ -316,16 +317,38 @@ export default {
                     },
                     state: "selected"
                 };
+                let reservationUser = {
+                    id: this.production.pid + "-" + seat.sid,
+                    rid: seat.sid,
+                    x: seat.x,
+                    y: seat.y,
+                    date: new Date(),
+                    state: "selected",
+                    production: this.production
+                };
 
-                try {
-                    await db
+                batch.set(
+                    db
                         .collection("shows")
                         .doc(this.show.sid)
                         .collection("productions")
                         .doc(this.production.pid)
                         .collection("reservations")
-                        .doc(reservation.rid)
-                        .set(reservation);
+                        .doc(reservation.rid),
+                    reservation
+                );
+
+                batch.set(
+                    db
+                        .collection("users")
+                        .doc(this.user.uid)
+                        .collection("reservations")
+                        .doc(reservationUser.id),
+                    reservationUser
+                );
+
+                try {
+                    await batch.commit();
                 } catch (error) {
                     this.showError(
                         "Ocurrió un error efectuando la reserva. Inténtalo más tarde."
@@ -334,15 +357,25 @@ export default {
                     seat.changingState = false;
                 }
             } else {
-                try {
-                    await db
+                batch.delete(
+                    db
                         .collection("shows")
                         .doc(this.show.sid)
                         .collection("productions")
                         .doc(this.production.pid)
                         .collection("reservations")
                         .doc(seat.sid)
-                        .delete();
+                );
+
+                batch.delete(
+                    db
+                        .collection("users")
+                        .doc(this.user.uid)
+                        .collection("reservations")
+                        .doc(this.production.pid + "-" + seat.sid)
+                );
+                try {
+                    await batch.commit();
                 } catch (error) {
                     this.showError(
                         "Ocurrió un error eliminando la reserva. Inténtalo más tarde."
@@ -369,6 +402,15 @@ export default {
                         .doc(this.production.pid)
                         .collection("reservations")
                         .doc(seat.sid),
+                    { state: "paid", date }
+                );
+
+                batch.update(
+                    db
+                        .collection("users")
+                        .doc(this.user.uid)
+                        .collection("reservations")
+                        .doc(this.production.pid + "-" + seat.sid),
                     { state: "paid", date }
                 );
             });
